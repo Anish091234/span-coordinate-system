@@ -99,6 +99,7 @@
       <div class="about-section">
         <div class="about-section-label">Approach</div>
         <p>SPAN gives every craft one live address. The <b>dotted path</b> encodes nesting (like an IP address for the solar system) and the <b>leaf coordinates</b> use whichever scheme fits the current scale. Cross a sphere-of-influence boundary and the address updates. The math underneath stays in ICRF the whole time.</p>
+        <p style="font-size:11.5px;color:var(--ink-dim);margin-top:8px;padding:8px 12px;background:rgba(255,255,255,0.04);border-left:2px solid rgba(255,255,255,0.15);">One practical limit: this visualizer carries position only, not velocity. Craft orbital elements (shown in the readout) assume a circular orbit (e&nbsp;&asymp;&nbsp;0). That's fine for a labeling-system demo but not for manoeuvre planning. A real GNC system carries a full state vector.</p>
       </div>
 
       <div class="addr-demo">
@@ -122,8 +123,8 @@
         </div>
         <div class="fcard planet"><div class="bar"></div>
           <div class="h">PLANET</div><div class="sc">Body-centred · spherical</div>
-          <div class="ct">r · Az · El&nbsp;<span style="color:var(--ink-faint)">(km)</span></div>
-          <div class="dsc">Range, azimuth, and elevation from the body centre. Used for orbit insertion burns and rendezvous manoeuvres.</div>
+          <div class="ct">r · Az · El&nbsp;<span style="color:var(--ink-faint)">(km · display)</span></div>
+          <div class="dsc">Range plus two bearing angles from the body centre. Display convention only — operational rendezvous (Dragon ISS approach, orbit insertion) uses LVLH (Local Vertical Local Horizontal): R-bar, V-bar, H-bar. Az/El here is a simplified visualization frame.</div>
         </div>
         <div class="fcard moon"><div class="bar"></div>
           <div class="h">MOON</div><div class="sc">Local · Cartesian</div>
@@ -151,11 +152,19 @@
       </div>
 
       <div class="mission-demo">
-        <div class="md-mission-title">Starship HLS · Artemis Lunar Landing</div>
+        <div class="md-mission-title">Dragon · ISS Rendezvous</div>
+        <div class="md-row"><span class="phase-lbl">KSC Pad 39A &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="addr">SOL.TER</span> <span class="md-coord">⌖ 28.6°N 280.5°E ↑0.0 km</span> <span class="md-note">surface geodetic</span></div>
+        <div class="md-row"><span class="phase-lbl">Parking orbit &nbsp;&nbsp;&nbsp;&nbsp;</span><span class="addr">SOL.TER</span> <span class="md-coord">⟨ r=6,571 km  Az=98°  El=0° ⟩</span> <span class="md-note">200 km circular</span></div>
+        <div class="md-row"><span class="phase-lbl">Phasing orbit &nbsp;&nbsp;&nbsp;&nbsp;</span><span class="addr">SOL.TER</span> <span class="md-coord">⟨ r=6,771 km  Az=100°  El=0° ⟩</span> <span class="md-note">below ISS, V-bar approach in LVLH</span></div>
+        <div class="md-row md-handoff"><span class="phase-lbl">R-bar approach &nbsp;&nbsp;&nbsp;</span><span class="addr">SOL.TER</span> <span class="md-coord">⟨ r=6,786 km  Az=101°  El=52° ⟩</span> <span class="md-note">LVLH R-bar, &lt;1 km to ISS</span></div>
+        <div class="md-row"><span class="phase-lbl">Docking &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="addr">SOL.TER</span> <span class="md-coord">⟨ r=6,793 km  Az=101°  El=53° ⟩</span> <span class="md-note">address stays SOL.TER throughout</span></div>
+      </div>
+      <div class="mission-demo">
+        <div class="md-mission-title">Starship HLS · Artemis Lunar Landing</div> · Artemis Lunar Landing</div>
         <div class="md-row"><span class="phase-lbl">KSC launch pad &nbsp;&nbsp;&nbsp;</span><span class="addr">SOL.TER</span> <span class="md-coord">⌖ 28.6°N 280.5°E ↑0.0 km</span> <span class="md-note">surface geodetic</span></div>
         <div class="md-row"><span class="phase-lbl">Parking orbit &nbsp;&nbsp;&nbsp;&nbsp;</span><span class="addr">SOL.TER</span> <span class="md-coord">⟨ r=6,771 km  Az=100°  El=0° ⟩</span> <span class="md-note">body-centred spherical</span></div>
         <div class="md-row"><span class="phase-lbl">TLI outbound &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="addr">SOL.TER</span> <span class="md-coord">⟨ r=700,000 km  Az=280°  El=2° ⟩</span> <span class="md-note">still inside TER SOI</span></div>
-        <div class="md-row md-handoff"><span class="phase-lbl">SOI handoff ▶ NRHO</span><span class="addr">SOL.TER.LUN</span> <span class="md-coord">⟨ r=65,000 km  Az=350°  El=−75° ⟩</span> <span class="md-note">+1 node in address</span></div>
+        <div class="md-row md-handoff"><span class="phase-lbl">SOI handoff → LLO-prep</span><span class="addr">SOL.TER.LUN</span> <span class="md-coord">⟨ r=65,000 km  Az=350°  El=−75° ⟩</span> <span class="md-note">+1 node · two-body approx (real NRHO is a 3-body orbit)</span></div>
         <div class="md-row"><span class="phase-lbl">Low Lunar Orbit &nbsp;&nbsp;</span><span class="addr">SOL.TER.LUN</span> <span class="md-coord">⟨ r=1,837 km  Az=45°  El=3° ⟩</span> <span class="md-note">100 km altitude</span></div>
         <div class="md-row"><span class="phase-lbl">Touchdown &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="addr">SOL.TER.LUN</span> <span class="md-coord">⌖ 89.2°S  0.0°E  ↑0.0 km</span> <span class="md-note">surface geodetic</span></div>
       </div>

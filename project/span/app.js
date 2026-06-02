@@ -356,12 +356,12 @@ const MISSIONS = {
       },
       {
         label: 'T+6 h · Phasing Orbit',
-        desc: 'Dragon in a 200x400 km phasing orbit below the ISS. SPAN is now in the body-centred spherical frame: <b>SOL.TER ⟨ r Az El ⟩</b>. Range from Earth centre ~6,771 km.',
+        desc: 'Dragon in a 200&times;400 km phasing orbit below the ISS at ~6,771 km from Earth centre. SPAN shows <b>SOL.TER ⟨ r Az El ⟩</b>. Operationally Dragon flies this leg in the LVLH frame (V-bar below ISS), but SPAN\'s spherical display is a close-enough representation for address tracking.',
         body: 'TER', mode: 'orbit', r: 6771, az: 100, el: 0,
       },
       {
         label: 'T+27 h · R-bar Approach',
-        desc: 'Dragon within 1 km of ISS on the R-bar approach. Address is still <b>SOL.TER</b>. Az and El are barely ticking; the frame stays constant, only the numbers change.',
+        desc: 'Dragon within 1 km of ISS on the R-bar approach. SPAN address stays <b>SOL.TER</b> the entire rendezvous. Dragon\'s GNC runs in LVLH (R-bar: toward Earth, V-bar: velocity, H-bar: angular momentum). SPAN doesn\'t change frames here — it\'s the same SOI, same address, just a different point in the same leaf coordinate space.',
         body: 'TER', mode: 'orbit', r: 6786, az: 101.5, el: 51.6,
       },
     ],
@@ -377,7 +377,7 @@ const MISSIONS = {
       },
       {
         label: 'SOI Handoff → NRHO',
-        desc: 'Starship crosses Luna\'s sphere of influence (66,100 km). SPAN hands off automatically: <b>SOL.TER.LUN</b>. The address gains one node. NRHO periapsis is ~3,000 km over the south pole, a very elongated orbit that\'s cheap on delta-v.',
+        desc: 'Starship crosses Luna\'s sphere of influence (66,100 km). SPAN hands off: <b>SOL.TER.LUN</b>. Address gains one node. Note: real NRHO is a three-body orbit (Earth-Moon-Sun interaction), not a closed two-body conic. This visualizer uses a two-body SOI model, so the 65,000 km position here approximates the NRHO region but doesn\'t represent the actual orbit shape.',
         body: 'LUN', mode: 'orbit', r: 65000, az: 350, el: -75,
       },
       {
@@ -387,7 +387,7 @@ const MISSIONS = {
       },
       {
         label: 'Touchdown · South Pole',
-        desc: 'Starship lands at the Artemis target site near the lunar south pole. SPAN switches to the geodetic surface frame: <b>SOL.TER.LUN ⌖</b>. Three bodies deep, surface-locked. The address is unambiguous anywhere in the solar system.',
+        desc: 'Starship lands near the lunar south pole. SPAN switches to geodetic surface frame: <b>SOL.TER.LUN ⌖</b>. Three bodies deep, surface-locked. Same ICRF backbone underneath — the address is just the labeling.',
         body: 'LUN', mode: 'surface', lat: -89.2, lon: 0, alt: 0,
       },
     ],
@@ -446,9 +446,12 @@ function setMission(key) {
   if (!panel) return;
   if (activeMission) {
     panel.style.display = 'block';
+    const modelMap = { dragon_iss: 'dragon', starship_lunar: 'starship' };
+    if (Scene.setCraftModel) Scene.setCraftModel(modelMap[key] || 'generic');
     applyMissionPhase(activeMission, 0);
   } else {
     panel.style.display = 'none';
+    if (Scene.setCraftModel) Scene.setCraftModel('generic');
     const cn = document.querySelector('#readout h2 .craftname');
     if (cn) cn.textContent = 'SC-VOYAGER';
   }

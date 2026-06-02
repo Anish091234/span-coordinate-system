@@ -39,7 +39,7 @@ const SCHEME = {
   star:   { type:'ecliptic', tag:'Ecliptic spherical', unit:'AU',
             fields:['λ','β','r'], desc:'Heliocentric — angular position on the ecliptic plus range in AU.' },
   planet: { type:'spherical', tag:'Body-centred spherical', unit:'km',
-            fields:['r','Az','El'], desc:'Range, azimuth and elevation from the planet centre — natural for orbits.' },
+            fields:['r','Az','El'], desc:'Range plus two bearing angles from the body centre. Display convention — operational rendezvous (Dragon, for example) uses LVLH (Local Vertical Local Horizontal), not Az/El.' },
   moon:   { type:'cartesian', tag:'Local Cartesian', unit:'km',
             fields:['X','Y','Z'], desc:'Right-handed metres-scale grid — precision for proximity & landing.' },
 };

@@ -365,11 +365,74 @@ const Scene = (() => {
     });
   }
 
+  let currentCraftType = 'generic';
+
+  function makeCraftShape(type) {
+    const grp = new THREE.Group();
+    const blue = 0x9fe6ff;
+    if (type === 'dragon') {
+      // Crew Dragon: frustum capsule + cylindrical trunk + 2 solar panels
+      const capsule = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.5, 2.6, 14),
+        new THREE.MeshStandardMaterial({ color:0xdde8f0, metalness:0.55, roughness:0.3, emissive:0x9fe6ff, emissiveIntensity:0.08 }));
+      capsule.position.y = 0.8;
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 1.8, 14),
+        new THREE.MeshStandardMaterial({ color:0x6a7d8e, metalness:0.65, roughness:0.3 }));
+      trunk.position.y = -1.2;
+      const panMat = new THREE.MeshStandardMaterial({ color:0x11213e, emissive:0x0a1428, emissiveIntensity:0.5, roughness:0.6 });
+      for (const sx of [-1, 1]) {
+        const panel = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.07, 1.0), panMat);
+        panel.position.set(sx * 3.1, -1.2, 0); grp.add(panel);
+        // panel frame
+        const frame = new THREE.Mesh(new THREE.BoxGeometry(3.9, 0.12, 1.1),
+          new THREE.MeshStandardMaterial({ color:0x8090a0, metalness:0.7, roughness:0.3 }));
+        frame.position.set(sx * 3.1, -1.2, 0); grp.add(frame);
+      }
+      grp.add(capsule); grp.add(trunk);
+    } else if (type === 'starship') {
+      // Starship: tall steel cylinder + nosecone + 4 flaps
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 7, 14),
+        new THREE.MeshStandardMaterial({ color:0xcacad6, metalness:0.88, roughness:0.12, emissive:0x9fe6ff, emissiveIntensity:0.04 }));
+      const nose = new THREE.Mesh(new THREE.ConeGeometry(1.1, 3.2, 14),
+        new THREE.MeshStandardMaterial({ color:0xd4d4de, metalness:0.88, roughness:0.12 }));
+      nose.position.y = 5.1;
+      // aft flaps (2 per side at bottom)
+      const flapMat = new THREE.MeshStandardMaterial({ color:0xb0b0bc, metalness:0.82, roughness:0.18 });
+      for (let i = 0; i < 4; i++) {
+        const flap = new THREE.Mesh(new THREE.BoxGeometry(0.25, 2.2, 0.9), flapMat);
+        const ang = i * Math.PI / 2 + Math.PI / 4;
+        flap.position.set(Math.cos(ang)*1.2, -2.8, Math.sin(ang)*1.2);
+        grp.add(flap);
+      }
+      grp.add(body); grp.add(nose);
+    } else if (type === 'iss') {
+      // ISS: truss backbone + modules + 4 pairs of solar arrays
+      const trussMat = new THREE.MeshStandardMaterial({ color:0xb0bbc6, metalness:0.65, roughness:0.35 });
+      const truss = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 16, 8), trussMat);
+      truss.rotation.z = Math.PI / 2;
+      const habMat = new THREE.MeshStandardMaterial({ color:0xd0d8e0, metalness:0.4, roughness:0.5 });
+      const hab = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 5.5, 12), habMat);
+      hab.rotation.z = Math.PI / 2;
+      const panMat = new THREE.MeshStandardMaterial({ color:0x0e1a36, emissive:0x06100e, emissiveIntensity:0.4 });
+      const arrayPairs = [[-6, -1.8], [-6, 1.8], [6, -1.8], [6, 1.8]];
+      for (const [ax, ay] of arrayPairs) {
+        const arr = new THREE.Mesh(new THREE.BoxGeometry(0.07, 5.2, 1.9), panMat);
+        arr.position.set(ax, ay, 0); grp.add(arr);
+      }
+      grp.add(truss); grp.add(hab);
+    } else {
+      // generic: original octahedron
+      const mesh = new THREE.Mesh(new THREE.OctahedronGeometry(2.0),
+        new THREE.MeshStandardMaterial({ color:0xffffff, emissive:blue, emissiveIntensity:0.7, metalness:0.3, roughness:0.4 }));
+      grp.add(mesh);
+    }
+    return grp;
+  }
+
   function buildCraft(){
     const grp = new THREE.Group();
-    const mesh = new THREE.Mesh(new THREE.OctahedronGeometry(2.0),
-      new THREE.MeshStandardMaterial({ color:0xffffff, emissive:0x9fe6ff, emissiveIntensity:0.7, metalness:0.3, roughness:0.4 }));
-    grp.add(mesh);
+    const modelGrp = makeCraftShape(currentCraftType);
+    grp.add(modelGrp);
+    const mesh = modelGrp; // .rotation.y is applied to the group
     grp.add(glowSprite(0x9fe6ff, 11));
     // halo ring
     const halo = new THREE.Mesh(new THREE.RingGeometry(3.2, 3.6, 40),
@@ -393,6 +456,17 @@ const Scene = (() => {
 
     frameGroup.add(grp); frameGroup.add(line); frameGroup.add(sub);
     craft = { group:grp, mesh, line, tagObj, halo, sub, subRing };
+  }
+
+  function setCraftModel(type) {
+    currentCraftType = type;
+    if (!craft) return;
+    // remove old model group (first child of craft.group, before glow/halo/tag)
+    const old = craft.mesh;
+    craft.group.remove(old);
+    const modelGrp = makeCraftShape(type);
+    craft.group.add(modelGrp);
+    craft.mesh = modelGrp;
   }
 
   /* ---------- build the SURFACE (geodetic) frame ---------- */
@@ -603,6 +677,7 @@ const Scene = (() => {
     startLaunch, stepLaunch, stopLaunchVisual, focusLaunch,
     onSelect(fn){ onSelect = fn; },
     start(){ tick(); },
+    setCraftModel,
     get frameCode(){ return frameCode; },
     get frameMode(){ return frameMode; },
   };

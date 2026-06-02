@@ -433,6 +433,7 @@ select#mission-select option:first-child { color: var(--ink-faint); }
 .md-coord { color: var(--ink); }
 .md-note { font-size: 9px; color: var(--ink-faint); font-family: var(--font-ui); letter-spacing: 0.06em; margin-left: auto; }
 .md-handoff .md-note { color: var(--planet); }
+#about .mission-demo + .mission-demo { margin-top: 16px; }
 
 /* How-to grid */
 .how-grid {
