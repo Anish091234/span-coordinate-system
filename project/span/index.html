@@ -84,55 +84,114 @@
   <div id="overlay">
     <div id="about" class="panel">
       <div class="close" id="about-close">✕</div>
-      <h1><b>SPAN</b> — Solar Positional Address Notation</h1>
-      <p class="lede">Every craft carries one hierarchical address. The dotted <b>path</b> names the chain of bodies it is nested within — like a network address — and the <b>leaf coordinates</b> are expressed in whichever frame is currently <b>active</b>: the deepest body whose sphere of influence (SOI) contains the craft. Climb out and the address shortens; fall into a body's SOI and it grows.</p>
 
-      <div class="addr-demo">
-        <span class="sol">SOL</span><span class="cm">.</span><span class="planet">TER</span><span class="cm">.</span><span class="moon">LUN</span>&nbsp;&nbsp;<span class="cm">⟨</span> X +812.4&nbsp; Y −1203.0&nbsp; Z +44.6 km <span class="cm">⟩</span><br>
-        <span style="font-size:11px;color:var(--ink-faint)">└─ path: nested Sun → Terra → Luna&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─ coordinates in the active (Luna) frame</span>
+      <div class="about-eyebrow">Navigation &amp; GNC · Coordinate Systems</div>
+      <h1><b>SPAN</b> — Solar Positional Address Notation</h1>
+      <p class="lede">A hierarchical spacecraft addressing system that unifies multi-body navigation under a single, human-readable notation — and a continuous J2000 ICRF mathematical backbone.</p>
+
+      <!-- The Problem -->
+      <div class="about-section">
+        <div class="about-section-label">The Problem</div>
+        <p>Every operational spacecraft toggles between incompatible coordinate frames as it moves through the solar system: ECI for launch, heliocentric ecliptic for cruise, body-centred for orbit insertion, geodetic for landing. Each frame lives in a separate reference document and is re-expressed manually at each handoff. There is no standard notation that captures <em>which body currently owns a vehicle</em> and <em>at what scale</em> — making multi-mission trajectory files ambiguous and ground-system interfaces fragile.</p>
       </div>
 
+      <!-- The Solution -->
+      <div class="about-section">
+        <div class="about-section-label">The Solution</div>
+        <p>SPAN gives every craft one live address. The <b>dotted path</b> encodes nesting — like an IP address for the solar system — and the <b>leaf coordinates</b> use whichever scheme is physically natural at the current scale. The address is always valid and always unambiguous.</p>
+      </div>
+
+      <div class="addr-demo">
+        <div style="margin-bottom:6px;">
+          <span class="sol">SOL</span><span class="cm">.</span><span class="planet">TER</span><span class="cm">.</span><span class="moon">LUN</span>&nbsp;&nbsp;<span class="cm">⟨</span>&nbsp;X +812.4&nbsp; Y −1203.0&nbsp; Z +44.6 km&nbsp;<span class="cm">⟩</span>
+        </div>
+        <div style="font-size:10.5px;color:var(--ink-faint);line-height:1.8;">
+          <span style="color:var(--sol);">SOL</span> = heliocentric root &nbsp;·&nbsp;
+          <span style="color:var(--planet);">TER</span> = inside Earth's SOI &nbsp;·&nbsp;
+          <span style="color:var(--moon);">LUN</span> = active frame (Luna's SOI) &nbsp;·&nbsp;
+          <span style="color:var(--ink-dim);">⟨ X Y Z ⟩</span> = Cartesian in Luna frame
+        </div>
+      </div>
+
+      <!-- Frame types -->
       <div class="grid">
         <div class="fcard sol"><div class="bar"></div>
-          <div class="h">SOL</div><div class="sc">Heliocentric · ecliptic</div>
+          <div class="h">SOL</div><div class="sc">Heliocentric · J2000 ecliptic</div>
           <div class="ct">λ · β · r&nbsp;<span style="color:var(--ink-faint)">(AU)</span></div>
-          <div class="dsc">Ecliptic longitude &amp; latitude plus range in astronomical units — coarse interplanetary position.</div>
+          <div class="dsc">Ecliptic longitude, latitude, and range in AU. Natural frame for interplanetary cruise — matches JPL Horizons vector output directly.</div>
         </div>
         <div class="fcard planet"><div class="bar"></div>
-          <div class="h">PLANET</div><div class="sc">Body-centred · equatorial</div>
+          <div class="h">PLANET</div><div class="sc">Body-centred · spherical</div>
           <div class="ct">r · Az · El&nbsp;<span style="color:var(--ink-faint)">(km)</span></div>
-          <div class="dsc">Range, azimuth and elevation from the planet centre — the natural language of orbits.</div>
+          <div class="dsc">Range, azimuth, and elevation from the body centre. The standard language of orbit insertion burns and rendezvous manoeuvres.</div>
         </div>
         <div class="fcard moon"><div class="bar"></div>
           <div class="h">MOON</div><div class="sc">Local · Cartesian</div>
           <div class="ct">X · Y · Z&nbsp;<span style="color:var(--ink-faint)">(km)</span></div>
-          <div class="dsc">A right-handed metric grid for the close-proximity precision of approach &amp; landing.</div>
+          <div class="dsc">Right-handed Cartesian in km. Precision proximity ops, terminal descent, and docking — where every metre counts.</div>
         </div>
       </div>
 
-      <p><b style="color:var(--ink)">Why three coordinate types?</b> Each scale has a job. Angles + AU describe where you are around the Sun; spherical range/bearing matches how spacecraft hold and change orbits; Cartesian metres give the precision needed metres from a surface. SPAN lets a craft speak whichever dialect its situation demands — while the path keeps every frame unambiguously linked back to the Sun.</p>
-
-      <p><b style="color:var(--planet)">Leaving a surface?</b> Within one body-radius of a planet or moon's surface, the active frame switches to a <b>geodetic</b> regime — <span style="font-family:var(--font-mono)">latitude · longitude · altitude</span> — and the view zooms to the surface with a lat/long graticule and a live ground-track point. Climb back out and it reverts to the orbital (range/azimuth/elevation) regime automatically.</p>
-
+      <!-- ICRF Backbone -->
       <div class="icrf-card">
         <h3>ICRF Backbone &amp; Frame Continuity</h3>
-        <p>SPAN is a <b>labeling system</b> layered over a continuous J2000 ICRF (International Celestial Reference Frame) coordinate backbone — not a patchwork of disconnected frames. When a spacecraft crosses a sphere-of-influence boundary and the address updates from <span style="font-family:var(--font-mono);color:var(--planet)">SOL.TER</span> to <span style="font-family:var(--font-mono);color:var(--moon)">SOL.TER.LUN</span>, the underlying position vector expressed in ICRF Cartesian coordinates <em>does not jump</em>. The transition is a relabeling event — a convenience abstraction — not a physical discontinuity. Every SPAN address maps bijectively to a unique ICRF triple at a given epoch, making the system interoperable with any standards-compliant navigation software.</p>
+        <p>SPAN is a <b>labeling abstraction</b> layered over a continuous J2000 ICRF coordinate backbone — not a patchwork of disconnected frames. When a vehicle crosses a sphere-of-influence boundary and the address updates from <span class="mono-hl planet-hl">SOL.TER</span> to <span class="mono-hl moon-hl">SOL.TER.LUN</span>, the underlying ICRF Cartesian position vector <em>does not change</em>. The transition is a relabeling event — not a physical discontinuity. Every SPAN address maps bijectively to a unique ICRF triple at a given epoch. This means SPAN addresses are directly interoperable with SPICE kernels, STK, and any software that understands J2000.</p>
       </div>
 
-      <p><b style="color:var(--planet)">SpaceX Mission Story — Starship HLS Lunar Landing:</b> When NASA's Artemis Starship departs Earth orbit, its SPAN address reads <span style="font-family:var(--font-mono)">SOL.TER ⟨ r=700,000 km ⟩</span>. The moment it enters Luna's 66,100 km SOI, the address grows a node: <span style="font-family:var(--font-mono)">SOL.TER.LUN</span>. From NRHO (70,000×3,000 km ellipse) to LLO (100 km circle) to touchdown, the address stays <span style="font-family:var(--font-mono)">SOL.TER.LUN</span> — only the leaf coordinates change. On the surface: <span style="font-family:var(--font-mono)">SOL.TER.LUN ⌖ 89.2°S 0.0°E ↑0.0km</span>. One address, unambiguous anywhere in the solar system. SpaceX Starlink, Dragon, and Starship all require exactly this kind of multi-frame position bookkeeping — SPAN makes the hierarchy explicit.</p>
+      <!-- Real Ephemeris -->
+      <div class="about-section">
+        <div class="about-section-label">Real Ephemeris · NASA JPL Horizons</div>
+        <p>Planet and Moon positions are fetched live from <b>NASA JPL's Horizons System API</b> (<code class="icode">ssd.jpl.nasa.gov/api/horizons.api</code>) on every page load. The API returns J2000 ICRF Keplerian elements (a, e, i, Ω, ω, ν) for each body. These are converted to heliocentric ecliptic Cartesian coordinates via the standard rotation R<sub>z</sub>(Ω)·R<sub>x</sub>(i)·R<sub>z</sub>(ω) and used to set each planet's true orbital longitude. The result: <b>every planet shown is where it actually is today</b>, verifiable against Horizons directly. Toggle <b>Elements</b> in the readout panel to inspect the full Keplerian set for each body in the address chain.</p>
+      </div>
+
+      <!-- Mission Story -->
+      <div class="about-section">
+        <div class="about-section-label">Mission Story · Starship HLS &amp; Dragon</div>
+        <p>SPAN is motivated by real operational requirements. SpaceX's Starship, Dragon, and Starlink constellations each require continuous, unambiguous position tracking across multiple reference frames. The mission presets in this tool walk through those trajectories step by step:</p>
+      </div>
 
       <div class="mission-demo">
-        <span class="phase-lbl">Launch pad    </span> <span class="addr">SOL.TER</span> ⌖ 28.6°N 280.5°E ↑0.0km<br>
-        <span class="phase-lbl">Parking orbit </span> <span class="addr">SOL.TER</span> ⟨ r=6,771km Az=100° El=0° ⟩<br>
-        <span class="phase-lbl">TLI outbound  </span> <span class="addr">SOL.TER</span> ⟨ r=700,000km Az=280° El=2° ⟩<br>
-        <span class="phase-lbl">NRHO (Moon)   </span> <span class="addr">SOL.TER.LUN</span> ⟨ r=65,000km Az=350° El=−75° ⟩<br>
-        <span class="phase-lbl">LLO descent   </span> <span class="addr">SOL.TER.LUN</span> ⟨ r=1,837km Az=45° El=3° ⟩<br>
-        <span class="phase-lbl">Touchdown     </span> <span class="addr">SOL.TER.LUN</span> ⌖ 89.2°S 0.0°E ↑0.0km
+        <div class="md-mission-title">Starship HLS · Artemis Lunar Landing</div>
+        <div class="md-row"><span class="phase-lbl">KSC launch pad &nbsp;&nbsp;&nbsp;</span><span class="addr">SOL.TER</span> <span class="md-coord">⌖ 28.6°N 280.5°E ↑0.0 km</span> <span class="md-note">surface geodetic</span></div>
+        <div class="md-row"><span class="phase-lbl">Parking orbit &nbsp;&nbsp;&nbsp;&nbsp;</span><span class="addr">SOL.TER</span> <span class="md-coord">⟨ r=6,771 km  Az=100°  El=0° ⟩</span> <span class="md-note">body-centred spherical</span></div>
+        <div class="md-row"><span class="phase-lbl">TLI outbound &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="addr">SOL.TER</span> <span class="md-coord">⟨ r=700,000 km  Az=280°  El=2° ⟩</span> <span class="md-note">still inside TER SOI</span></div>
+        <div class="md-row md-handoff"><span class="phase-lbl">SOI handoff ▶ NRHO</span><span class="addr">SOL.TER.LUN</span> <span class="md-coord">⟨ r=65,000 km  Az=350°  El=−75° ⟩</span> <span class="md-note">address grows one node</span></div>
+        <div class="md-row"><span class="phase-lbl">Low Lunar Orbit &nbsp;&nbsp;</span><span class="addr">SOL.TER.LUN</span> <span class="md-coord">⟨ r=1,837 km  Az=45°  El=3° ⟩</span> <span class="md-note">100 km altitude</span></div>
+        <div class="md-row"><span class="phase-lbl">Touchdown &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="addr">SOL.TER.LUN</span> <span class="md-coord">⌖ 89.2°S  0.0°E  ↑0.0 km</span> <span class="md-note">surface geodetic</span></div>
       </div>
 
-      <p><b style="color:var(--sol)">Real Ephemeris — NASA JPL Horizons:</b> Planet and Moon positions in this tool are pulled from <b>NASA JPL's Horizons API</b> (free, public, CORS-enabled). The orbital angles shown are real J2000 ICRF heliocentric elements — not cartoon approximations. You can verify any position against <code style="font-size:10.5px;background:rgba(0,0,0,0.3);padding:1px 5px;border-radius:4px;">ssd.jpl.nasa.gov/horizons</code> directly. Toggle <b>Elements</b> in the readout panel to see the full Keplerian set (a, e, i, Ω, ω, ν) for each body in the address chain.</p>
+      <!-- How to use -->
+      <div class="about-section">
+        <div class="about-section-label">How to Use</div>
+        <div class="how-grid">
+          <div class="how-item">
+            <div class="how-lbl">Address bar</div>
+            <div class="how-desc">Live SPAN address updates as you move. Click any crumb to jump to that body's orbit.</div>
+          </div>
+          <div class="how-item">
+            <div class="how-lbl">Elements toggle</div>
+            <div class="how-desc">Switch the readout from position coordinates to Keplerian elements (a, e, i, Ω, ω, ν) sourced from Horizons.</div>
+          </div>
+          <div class="how-item">
+            <div class="how-lbl">Mission presets</div>
+            <div class="how-desc">Step through Dragon ISS rendezvous or Starship lunar landing phase by phase, with engineering commentary.</div>
+          </div>
+          <div class="how-item">
+            <div class="how-lbl">Pilot console</div>
+            <div class="how-desc">Drag sliders to fly manually. SOI handoffs trigger automatically when you cross a sphere-of-influence boundary.</div>
+          </div>
+          <div class="how-item">
+            <div class="how-lbl">Orbit playback</div>
+            <div class="how-desc">Press Orbits to animate all bodies at 1×–8× time compression. Positions start from today's real Horizons values.</div>
+          </div>
+          <div class="how-item">
+            <div class="how-lbl">Surface regime</div>
+            <div class="how-desc">Descend within one body-radius of any planet or moon to engage geodetic mode — lat/long/altitude with a live ground-track.</div>
+          </div>
+        </div>
+      </div>
 
-      <p class="footnote">Sphere-of-influence radii: SOI ≈ a·(m/M)<sup>2/5</sup>. Solar-system view uses a compressed (√) radial scale so all eight planets are visible at once. Craft orbital elements shown as "circular approx" are computed from position alone (e ≈ 0 assumed); full elements require velocity tracking.</p>
+      <p class="footnote">SOI radius: a·(m/M)<sup>2/5</sup>. Solar-system view uses √ radial compression so all planets are visible simultaneously. Craft orbital elements labelled "circular approx" assume e≈0 — velocity is not tracked; full elements require a state vector propagator. Horizons data is fetched at page load; positions drift at orbit playback speed thereafter.</p>
     </div>
   </div>
 </div>
