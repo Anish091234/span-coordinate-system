@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SPAN — Solar Positional Address Notation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="app">
+  <canvas id="gl" style="position:absolute;inset:0;"></canvas>
+  <div id="labels"></div>
+  <div id="atmosphere"></div>
+
+  <div id="hud">
+    <!-- top: brand + live address -->
+    <div id="topbar">
+      <div id="brand" class="panel">
+        <div class="logo"><b>SPAN</b></div>
+        <div class="sub">Solar Positional Address</div>
+      </div>
+      <div id="addressbar" class="panel">
+        <div class="addr-label"><span id="addr-path"></span></div>
+        <div class="leaf" id="addr-leaf"></div>
+      </div>
+      <div id="about-btn" class="panel"><span class="q">?</span> System</div>
+    </div>
+
+    <!-- right: nav readout -->
+    <div id="readout" class="panel">
+      <h2><span>Position Resolution</span><span class="craftname">SC-VOYAGER</span></h2>
+      <div id="frame-rows"></div>
+      <div id="soi-status" class="panel">
+        <div class="soi-top"><span class="t" id="soi-title">Sphere of Influence</span><span class="v" id="soi-val"></span></div>
+        <div class="meter"><div class="fill" id="soi-fill"></div></div>
+        <div class="note" id="soi-note"></div>
+      </div>
+    </div>
+
+    <!-- bottom-left: pilot console -->
+    <div id="console" class="panel">
+      <h2>Pilot · Manual Position <span class="mode" id="pilot-mode"></span></h2>
+      <div id="controls"></div>
+      <div class="row" id="regime-row">
+        <button class="btn" id="launch" style="flex:1; justify-content:center; display:none;"><span class="lbl">▲ Launch ascent</span></button>
+        <button class="btn" id="surf" style="flex:1; justify-content:center;"><span class="lbl">Descend to surface</span></button>
+      </div>
+      <div class="row">
+        <div class="select-wrap"><select id="transfer"></select></div>
+        <button class="btn" id="play"><span class="ico">▶</span><span class="lbl">Orbits</span></button>
+        <button class="btn" id="speed"><span class="lbl">1×</span></button>
+      </div>
+    </div>
+
+    <div id="hint">
+      <span><b>Drag</b> orbit</span><span class="sep"></span>
+      <span><b>Scroll</b> zoom</span><span class="sep"></span>
+      <span><b>Click a body</b> to transfer</span>
+    </div>
+  </div>
+
+  <!-- About / system explainer -->
+  <div id="overlay">
+    <div id="about" class="panel">
+      <div class="close" id="about-close">✕</div>
+      <h1><b>SPAN</b> — Solar Positional Address Notation</h1>
+      <p class="lede">Every craft carries one hierarchical address. The dotted <b>path</b> names the chain of bodies it is nested within — like a network address — and the <b>leaf coordinates</b> are expressed in whichever frame is currently <b>active</b>: the deepest body whose sphere of influence (SOI) contains the craft. Climb out and the address shortens; fall into a body's SOI and it grows.</p>
+
+      <div class="addr-demo">
+        <span class="sol">SOL</span><span class="cm">.</span><span class="planet">TER</span><span class="cm">.</span><span class="moon">LUN</span>&nbsp;&nbsp;<span class="cm">⟨</span> X +812.4&nbsp; Y −1203.0&nbsp; Z +44.6 km <span class="cm">⟩</span><br>
+        <span style="font-size:11px;color:var(--ink-faint)">└─ path: nested Sun → Terra → Luna&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─ coordinates in the active (Luna) frame</span>
+      </div>
+
+      <div class="grid">
+        <div class="fcard sol"><div class="bar"></div>
+          <div class="h">SOL</div><div class="sc">Heliocentric · ecliptic</div>
+          <div class="ct">λ · β · r&nbsp;<span style="color:var(--ink-faint)">(AU)</span></div>
+          <div class="dsc">Ecliptic longitude &amp; latitude plus range in astronomical units — coarse interplanetary position.</div>
+        </div>
+        <div class="fcard planet"><div class="bar"></div>
+          <div class="h">PLANET</div><div class="sc">Body-centred · equatorial</div>
+          <div class="ct">r · Az · El&nbsp;<span style="color:var(--ink-faint)">(km)</span></div>
+          <div class="dsc">Range, azimuth and elevation from the planet centre — the natural language of orbits.</div>
+        </div>
+        <div class="fcard moon"><div class="bar"></div>
+          <div class="h">MOON</div><div class="sc">Local · Cartesian</div>
+          <div class="ct">X · Y · Z&nbsp;<span style="color:var(--ink-faint)">(km)</span></div>
+          <div class="dsc">A right-handed metric grid for the close-proximity precision of approach &amp; landing.</div>
+        </div>
+      </div>
+
+      <p><b style="color:var(--ink)">Why three coordinate types?</b> Each scale has a job. Angles + AU describe where you are around the Sun; spherical range/bearing matches how spacecraft hold and change orbits; Cartesian metres give the precision needed metres from a surface. SPAN lets a craft speak whichever dialect its situation demands — while the path keeps every frame unambiguously linked back to the Sun.</p>
+
+      <p><b style="color:var(--planet)">Leaving a surface?</b> Within one body-radius of a planet or moon's surface, the active frame switches to a <b>geodetic</b> regime — <span style="font-family:var(--font-mono)">latitude · longitude · altitude</span> — and the view zooms to the surface with a lat/long graticule and a live ground-track point. Climb back out and it reverts to the orbital (range/azimuth/elevation) regime automatically.</p>
+
+      <p class="footnote">Distances, radii and sphere-of-influence radii are approximate and illustrative — sized for clarity, not navigation. SOI ≈ a·(m/M)<sup>2/5</sup>. Solar-system view uses a compressed (√) radial scale so all eight planets are visible at once.</p>
+    </div>
+  </div>
+</div>
+
+<!-- libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS2DRenderer.js"></script>
+
+<!-- app -->
+<script src="data.js"></script>
+<script src="coords.js"></script>
+<script src="scene.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
