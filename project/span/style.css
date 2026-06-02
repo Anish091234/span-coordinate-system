@@ -48,9 +48,12 @@ html, body {
   font-family: var(--font-ui);
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none; -webkit-user-select: none;
 }
 
 #app { position: fixed; inset: 0; }
+#gl { touch-action: none; }
 #scene { position: absolute; inset: 0; z-index: 0; }
 
 /* Soft vignette + a faint warm/cool light wash — gives the glass something to refract */
@@ -196,6 +199,14 @@ html, body {
 .coord .val { font-family: var(--font-mono); font-size: 13px; color: var(--ink); font-weight: 500; }
 .coord .val .u { font-size: 9px; color: var(--ink-faint); margin-left: 2px; }
 
+/* "disp" qualifier badge on Az/El labels in live readout */
+.disp-qualifier {
+  font-size: 7px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink-faint); border: 1px solid var(--line); border-radius: 3px;
+  padding: 0 3px; vertical-align: middle; cursor: default; font-family: var(--font-ui);
+  opacity: 0.75;
+}
+
 /* SOI status — a recessed well inside the readout glass, not a second floating pane */
 #soi-status { margin-top: 10px; padding: 10px 12px; border-radius: var(--r-sm); }
 #soi-status.panel {
@@ -215,6 +226,7 @@ html, body {
 /* ---------- Bottom: pilot console ---------- */
 #console {
   position: absolute; left: 18px; bottom: 18px; width: 360px; padding: 14px 16px 16px;
+  max-height: calc(100vh - 120px); overflow-y: auto;
 }
 #console h2 {
   margin: 0 0 12px; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
@@ -553,18 +565,64 @@ select#mission-select option:first-child { color: var(--ink-faint); }
 #icrf-note b { color: var(--ink-dim); font-weight: 500; }
 #icrf-note .icrf-link { color: var(--planet); font-family: var(--font-mono); font-size: 9px; }
 
+/* ============================================================
+   Responsive — tablet / mobile / iPhone
+   ============================================================ */
+
+/* Tablet (landscape) — hide readout, shrink topbar */
 @media (max-width: 900px) {
   #readout { display: none; }
+  #topbar { top: 12px; left: 12px; right: 12px; gap: 8px; }
+  #brand { min-width: 130px; padding: 8px 12px; }
+  #brand .logo { font-size: 15px; }
+  #brand .sub { display: none; }
+  #addressbar { padding: 8px 12px; }
+  #addressbar .addr-label { font-size: 18px; }
+  #addressbar .leaf { font-size: 11px; margin-left: 10px; padding-left: 10px; }
+  #about-btn { padding: 0 12px; font-size: 10px; }
+  #console { width: calc(100vw - 24px); left: 12px; bottom: 12px; }
+  #hint { display: none; }
+
+  /* About modal */
   #about .grid { grid-template-columns: 1fr 1fr; }
   .how-grid { grid-template-columns: 1fr 1fr; }
-  #about { padding: 28px 22px; }
+  #about { padding: 28px 20px; }
   .md-row { grid-template-columns: 130px auto; }
   .md-note { grid-column: 1 / -1; text-align: left; padding-bottom: 2px; }
 }
-@media (max-width: 520px) {
+
+/* Mobile portrait — iPhone SE / 12 / 14 */
+@media (max-width: 640px) {
+  #topbar { flex-wrap: nowrap; gap: 6px; }
+  #brand { min-width: 0; padding: 7px 10px; flex-shrink: 0; }
+  #addressbar { min-width: 0; overflow: hidden; }
+  #addressbar .addr-label { font-size: 15px; }
+  #addressbar .leaf { display: none; }          /* leaf coords shown in readout, not topbar */
+  #about-btn { padding: 0 10px; }
+  #about-btn span:last-child { display: none; } /* hide "System" text, keep ? */
+
+  #console { padding: 11px 12px 13px; }
+  #console h2 { font-size: 9px; }
+  .ctrl { margin-bottom: 8px; }
+  .ctrl .ctrl-head .nm { font-size: 10px; }
+  .coord .val { font-size: 11px; }
+
+  /* About modal */
+  #overlay { padding: 14px 10px; }
+  #about { padding: 20px 14px; }
+  #about h1 { font-size: 18px; }
   #about .grid { grid-template-columns: 1fr; }
   .how-grid { grid-template-columns: 1fr; }
-  #about { padding: 22px 16px; }
   .md-row { grid-template-columns: 1fr; gap: 2px; }
   .md-coord { white-space: normal; }
+  #about .addr-demo { font-size: 11px; padding: 10px 12px; }
+  #about .lede { font-size: 11.5px; }
+}
+
+/* Very small phones — iPhone SE 1st gen (320px) */
+@media (max-width: 360px) {
+  #addressbar .addr-label { font-size: 13px; }
+  #brand .logo { font-size: 13px; }
+  #console { width: calc(100vw - 16px); left: 8px; bottom: 8px; }
+  #about { padding: 16px 12px; }
 }

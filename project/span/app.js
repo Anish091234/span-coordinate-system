@@ -355,7 +355,7 @@ const MISSIONS = {
         body: 'TER', mode: 'surface', lat: 28.6, lon: -65.0, alt: 200,
       },
       {
-        label: 'T+6 h · Phasing Orbit',
+        label: 'T+6 h · Phasing Burns → Hold Point',
         desc: 'Dragon in a 200&times;400 km phasing orbit below the ISS at ~6,771 km from Earth centre. SPAN shows <b>SOL.TER ⟨ r Az El ⟩</b>. Operationally Dragon flies this leg in the LVLH frame (V-bar below ISS), but SPAN\'s spherical display is a close-enough representation for address tracking.',
         body: 'TER', mode: 'orbit', r: 6771, az: 100, el: 0,
       },

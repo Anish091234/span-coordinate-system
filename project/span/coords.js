@@ -79,8 +79,8 @@ function resolveInFrame(state, frameCode){
     return {
       fields: [
         { lbl:'range', val: Math.round(r).toLocaleString('en-US'), u:'km' },
-        { lbl:'azim', val: az.toFixed(1)+'°' },
-        { lbl:'elev', val: (el>=0?'+':'−')+Math.abs(el).toFixed(1)+'°' },
+        { lbl:'Az <span class="disp-qualifier" title="display convention — operational rendezvous uses LVLH">disp</span>', val: az.toFixed(1)+'°' },
+        { lbl:'El <span class="disp-qualifier" title="display convention — operational rendezvous uses LVLH">disp</span>', val: (el>=0?'+':'−')+Math.abs(el).toFixed(1)+'°' },
       ],
       compact: `r${Math.round(r).toLocaleString('en-US')}km Az${az.toFixed(1)}° El${(el>=0?'+':'−')+Math.abs(el).toFixed(1)}°`,
     };
