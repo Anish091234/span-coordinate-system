@@ -325,45 +325,245 @@ select#transfer:hover { border-color: var(--line-2); }
 /* ---------- About modal ---------- */
 #overlay {
   position: absolute; inset: 0; z-index: 20; display: none;
-  background: rgba(2,4,8,0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 40px;
-  align-items: center; justify-content: center;
+  background: rgba(2,4,8,0.72); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  padding: 32px; align-items: flex-start; justify-content: center; overflow-y: auto;
 }
 #overlay.open { display: flex; }
 #about {
-  width: min(760px, 100%); max-height: 100%; overflow: auto; padding: 32px 36px;
+  width: min(780px, 100%); margin: auto; padding: 36px 40px;
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0) 30%),
+    linear-gradient(180deg, rgba(255,255,255,0.065), rgba(255,255,255,0) 28%),
     var(--panel-2);
 }
-#about.panel { box-shadow: 0 30px 80px -20px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.16); }
-#about h1 { margin: 0 0 4px; font-size: 22px; letter-spacing: 0.02em; }
-#about h1 b { color: var(--planet); font-family: var(--font-mono); }
-#about .lede { color: var(--ink-dim); font-size: 13.5px; line-height: 1.6; margin: 0 0 24px; max-width: 60ch; }
-#about .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 22px; }
-#about .fcard { border: 1px solid var(--line); border-radius: var(--r-sm); padding: 14px; position: relative; }
-#about .fcard .bar { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 3px 0 0 3px; }
-#about .fcard.sol .bar { background: var(--sol); } #about .fcard.sol .h { color: var(--sol); }
-#about .fcard.planet .bar { background: var(--planet); } #about .fcard.planet .h { color: var(--planet); }
-#about .fcard.moon .bar { background: var(--moon); } #about .fcard.moon .h { color: var(--moon); }
-#about .fcard .h { font-family: var(--font-mono); font-size: 13px; font-weight: 700; letter-spacing: 0.06em; margin-bottom: 3px; }
-#about .fcard .sc { font-size: 10px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 9px; }
-#about .fcard .ct { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink); margin-bottom: 4px; }
-#about .fcard .dsc { font-size: 11px; color: var(--ink-dim); line-height: 1.5; }
-#about .addr-demo {
-  font-family: var(--font-mono); font-size: 15px; background: rgba(0,0,0,0.3);
-  border: 1px solid var(--line); border-radius: var(--r-sm); padding: 14px 16px; margin-bottom: 20px;
-  line-height: 1.9;
+#about.panel { box-shadow: 0 40px 100px -20px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.16); }
+
+.about-eyebrow {
+  font-size: 9px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--planet);
+  font-weight: 600; margin-bottom: 8px;
 }
-#about .addr-demo .sol { color: var(--sol); } #about .addr-demo .planet { color: var(--planet); } #about .addr-demo .moon { color: var(--moon); }
-#about .addr-demo .cm { color: var(--ink-faint); }
-#about p { font-size: 12.5px; color: var(--ink-dim); line-height: 1.65; }
+#about h1 { margin: 0 0 10px; font-size: 24px; letter-spacing: 0.01em; font-weight: 700; }
+#about h1 b { color: var(--planet); font-family: var(--font-mono); }
+#about .lede {
+  color: var(--ink-dim); font-size: 13px; line-height: 1.65; margin: 0 0 26px; max-width: 64ch;
+  border-bottom: 1px solid var(--line); padding-bottom: 22px;
+}
+
+/* Section wrapper */
+.about-section { margin: 20px 0 6px; }
+.about-section-label {
+  font-size: 8.5px; letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--ink-faint); font-weight: 700; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 10px;
+}
+.about-section-label::after {
+  content: ''; flex: 1; height: 1px; background: var(--line);
+}
+#about p { font-size: 12.5px; color: var(--ink-dim); line-height: 1.68; margin: 0 0 14px; }
+
+/* Frame cards */
+#about .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 16px 0 22px; }
+#about .fcard { border: 1px solid var(--line); border-radius: var(--r-sm); padding: 14px 14px 13px; position: relative; }
+#about .fcard .bar { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 3px 0 0 3px; }
+#about .fcard.sol .bar    { background: var(--sol); }
+#about .fcard.planet .bar { background: var(--planet); }
+#about .fcard.moon .bar   { background: var(--moon); }
+#about .fcard.sol .h    { color: var(--sol); }
+#about .fcard.planet .h { color: var(--planet); }
+#about .fcard.moon .h   { color: var(--moon); }
+#about .fcard .h  { font-family: var(--font-mono); font-size: 13px; font-weight: 700; letter-spacing: 0.06em; margin-bottom: 2px; }
+#about .fcard .sc { font-size: 9.5px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 8px; }
+#about .fcard .ct { font-family: var(--font-mono); font-size: 12px; color: var(--ink); margin-bottom: 5px; }
+#about .fcard .dsc { font-size: 11px; color: var(--ink-dim); line-height: 1.5; }
+
+/* Address demo block */
+#about .addr-demo {
+  font-family: var(--font-mono); font-size: 14.5px; background: rgba(0,0,0,0.32);
+  border: 1px solid var(--line); border-radius: var(--r-sm); padding: 16px 18px; margin: 0 0 20px;
+  line-height: 1.7;
+}
+#about .addr-demo .sol    { color: var(--sol); }
+#about .addr-demo .planet { color: var(--planet); }
+#about .addr-demo .moon   { color: var(--moon); }
+#about .addr-demo .cm     { color: var(--ink-faint); }
+
+/* ICRF card */
+#about .icrf-card {
+  background: rgba(0,0,0,0.2); border: 1px solid var(--line);
+  border-left: 3px solid var(--planet); border-radius: var(--r-sm);
+  padding: 15px 17px; margin: 20px 0;
+}
+#about .icrf-card h3 {
+  margin: 0 0 8px; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--planet); font-weight: 700;
+}
+#about .icrf-card p { margin: 0; font-size: 12px; color: var(--ink-dim); line-height: 1.68; }
+.mono-hl { font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; }
+.planet-hl { color: var(--planet); }
+.moon-hl   { color: var(--moon); }
+
+/* Code inline */
+#about .icode, code.icode {
+  font-family: var(--font-mono); font-size: 10.5px;
+  background: rgba(0,0,0,0.35); padding: 1px 6px; border-radius: 4px;
+  color: var(--ink-dim); border: 1px solid var(--line);
+}
+
+/* Mission demo table */
+#about .mission-demo {
+  font-family: var(--font-mono); font-size: 11px;
+  background: rgba(0,0,0,0.3); border: 1px solid var(--line);
+  border-radius: var(--r-sm); padding: 14px 16px; margin: 12px 0 20px;
+}
+.md-mission-title {
+  font-size: 8.5px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--ink-faint); margin-bottom: 10px; font-family: var(--font-ui);
+}
+.md-row {
+  display: flex; align-items: baseline; gap: 10px; padding: 3.5px 0;
+  border-bottom: 1px solid rgba(150,180,215,0.06); flex-wrap: wrap;
+}
+.md-row:last-child { border-bottom: none; }
+.md-handoff { background: rgba(var(--planet), 0.04); }
+.md-handoff .phase-lbl { color: var(--planet); }
+#about .mission-demo .phase-lbl { color: var(--ink-faint); font-size: 10px; min-width: 140px; }
+#about .mission-demo .addr { color: var(--planet); font-weight: 700; font-size: 11.5px; }
+.md-coord { color: var(--ink); }
+.md-note { font-size: 9px; color: var(--ink-faint); font-family: var(--font-ui); letter-spacing: 0.06em; margin-left: auto; }
+.md-handoff .md-note { color: var(--planet); }
+
+/* How-to grid */
+.how-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 9px; margin: 10px 0 0;
+}
+.how-item {
+  background: rgba(0,0,0,0.18); border: 1px solid var(--line); border-radius: var(--r-sm);
+  padding: 11px 13px;
+}
+.how-lbl {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: var(--ink);
+  margin-bottom: 4px; text-transform: uppercase;
+}
+.how-desc { font-size: 11px; color: var(--ink-dim); line-height: 1.5; }
+
+/* Close button */
 #about .close {
   position: absolute; top: 22px; right: 26px; cursor: pointer; color: var(--ink-faint);
   font-family: var(--font-mono); font-size: 13px; border: 1px solid var(--line); border-radius: 8px;
   width: 28px; height: 28px; display: grid; place-items: center; transition: all .15s;
 }
 #about .close:hover { color: var(--ink); border-color: var(--line-2); }
-#about .footnote { font-size: 10.5px; color: var(--ink-faint); margin-top: 18px; line-height: 1.5; }
+#about .footnote { font-size: 10.5px; color: var(--ink-faint); margin-top: 20px; line-height: 1.55; padding-top: 16px; border-top: 1px solid var(--line); }
+
+/* ---------- Ephemeris status badge ---------- */
+.ephem-badge {
+  font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.16em;
+  text-transform: uppercase; padding: 3px 7px; border-radius: var(--r-xs);
+  border: 1px solid var(--line); cursor: default; white-space: nowrap;
+  transition: color .3s, border-color .3s;
+}
+.ephem-badge.loading { color: var(--ink-faint); border-color: var(--line); }
+.ephem-badge.ok      { color: oklch(0.78 0.18 145); border-color: oklch(0.78 0.18 145 / 0.4); }
+.ephem-badge.partial { color: var(--sol); border-color: var(--sol-soft); }
+.ephem-badge.failed  { color: var(--ink-faint); border-color: var(--line); }
+
+/* ---------- Orbital elements display ---------- */
+.elems-block {
+  margin-top: 8px; padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+.elems-header {
+  font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink-faint); margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
+}
+.elems-src {
+  font-size: 8px; letter-spacing: 0.1em; padding: 1px 5px; border-radius: 4px;
+  border: 1px solid var(--line); color: oklch(0.78 0.18 145); border-color: oklch(0.78 0.18 145/0.35);
+}
+.elems-src-approx {
+  color: var(--sol); border-color: var(--sol-soft);
+}
+.elems-coords { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+.elems-coords .coord { flex: none; }
+.elems-val { font-size: 11px !important; }
+.elems-root-note {
+  font-size: 9.5px; color: var(--ink-faint); line-height: 1.5;
+}
+.elems-loading { font-size: 9.5px; color: var(--ink-faint); font-style: italic; }
+.elems-craft .elems-header { color: var(--planet); }
+
+/* Elements toggle button state */
+#elems-btn.active {
+  color: var(--planet); border-color: var(--planet);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 0 0 1px var(--planet-soft), 0 4px 14px -4px var(--planet-soft);
+}
+
+/* ---------- Readout header with elements toggle ---------- */
+#readout h2 { align-items: center; }
+
+/* ---------- Mission panel ---------- */
+#mission-panel {
+  display: none; margin-top: 13px; padding: 12px 14px;
+  background: rgba(0,0,0,0.2); border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+}
+.mp-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;
+}
+.mp-name {
+  font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase;
+  font-weight: 600; color: var(--planet);
+}
+.mp-step {
+  font-family: var(--font-mono); font-size: 9px; color: var(--ink-faint);
+}
+.mp-phase-label {
+  font-size: 11px; font-weight: 600; color: var(--ink); margin-bottom: 6px; line-height: 1.35;
+}
+.mp-desc {
+  font-size: 10.5px; color: var(--ink-dim); line-height: 1.55; margin-bottom: 10px;
+}
+.mp-desc b { color: var(--planet); font-weight: 600; font-family: var(--font-mono); font-size: 10px; }
+.mp-nav {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.mp-btn { flex: 0 0 auto; }
+.mp-dots { display: flex; gap: 5px; }
+.mp-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--line-2); transition: background .2s;
+}
+.mp-dot.active { background: var(--planet); }
+
+/* ---------- ICRF backbone note ---------- */
+#icrf-note {
+  margin-top: 8px; padding: 7px 10px; border-radius: var(--r-xs);
+  background: rgba(0,0,0,0.15); border-left: 2px solid var(--line-2);
+  font-size: 9.5px; color: var(--ink-faint); line-height: 1.5;
+}
+#icrf-note b { color: var(--ink-dim); font-weight: 500; }
+#icrf-note .icrf-link { color: var(--planet); font-family: var(--font-mono); font-size: 9px; }
+
+/* ---------- About: ICRF section ---------- */
+#about .icrf-card {
+  background: rgba(0,0,0,0.2); border: 1px solid var(--line);
+  border-left: 3px solid var(--planet); border-radius: var(--r-sm);
+  padding: 14px 16px; margin: 18px 0;
+}
+#about .icrf-card h3 {
+  margin: 0 0 8px; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--planet); font-weight: 600;
+}
+#about .icrf-card p { margin: 0; font-size: 11.5px; color: var(--ink-dim); line-height: 1.6; }
+
+/* About: mission demo block */
+#about .mission-demo {
+  font-family: var(--font-mono); font-size: 11px;
+  background: rgba(0,0,0,0.3); border: 1px solid var(--line);
+  border-radius: var(--r-sm); padding: 12px 14px; margin: 14px 0;
+  line-height: 2.0; color: var(--ink-dim);
+}
+#about .mission-demo .addr { color: var(--planet); font-weight: 600; }
+#about .mission-demo .phase-lbl { color: var(--ink-faint); font-size: 9.5px; }
 
 @media (max-width: 900px) {
   #readout { display: none; }
