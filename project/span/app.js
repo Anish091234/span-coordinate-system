@@ -101,7 +101,7 @@ function updateHUD(){
             </div>`).join('')}
           </div></div>`;
       } else if (b.kind === 'star') {
-        elemsHtml = `<div class="elems-block elems-root-note">Root frame — no bounding orbit. All nested addresses reference the ICRF ecliptic backbone.</div>`;
+        elemsHtml = `<div class="elems-block elems-root-note">Root frame: no bounding orbit. All nested addresses reference the ICRF ecliptic backbone.</div>`;
       } else if (!elems) {
         elemsHtml = `<div class="elems-block elems-loading">Fetching Horizons data…</div>`;
       }
@@ -149,9 +149,9 @@ function updateHUD(){
     $('#soi-val').textContent = Math.round(alt).toLocaleString('en-US') + ' km above surface';
     $('#soi-note').innerHTML = alt/band > 0.82
       ? `<b>Approaching orbital altitude.</b> Climb past <b>${Math.round(band).toLocaleString('en-US')} km</b> and SPAN reverts to orbital coordinates.`
-      : `Geodetic regime active — <b>lat / long / altitude</b> for ascent &amp; landing within ${BODIES[state.body].code}.`;
+      : `Geodetic regime active: <b>lat / long / altitude</b> for ascent &amp; landing within ${BODIES[state.body].code}.`;
     if (launchAnim.active){
-      $('#soi-note').innerHTML = `<b style="color:var(--planet)">▲ ASCENT — ${launchPhase}</b> · lifting off from ${BODIES[state.body].code}.`;
+      $('#soi-note').innerHTML = `<b style="color:var(--planet)">▲ ASCENT · ${launchPhase}</b> · lifting off from ${BODIES[state.body].code}.`;
     }
   } else {
     const st = soiStatus(state);
@@ -159,7 +159,7 @@ function updateHUD(){
     if (!isFinite(st.boundary)){
       fill.style.width = '6%';
       $('#soi-val').textContent = 'heliocentric';
-      $('#soi-note').innerHTML = 'The Sun frame is the root — no bounding sphere of influence.';
+      $('#soi-note').innerHTML = 'The Sun frame is the root. No bounding sphere of influence.';
     } else {
       fill.style.width = (st.pct*100).toFixed(1) + '%';
       $('#soi-val').textContent = Math.round(st.dist).toLocaleString('en-US') + ' / ' + st.boundary.toLocaleString('en-US') + ' km';
@@ -346,22 +346,22 @@ const MISSIONS = {
     phases: [
       {
         label: 'T−0 · KSC Launch Pad 39A',
-        desc: 'Crew Dragon sits on Pad 39A at Kennedy Space Center. SPAN is in the surface geodetic frame — lat/long/altitude. The full address is <b>SOL.TER</b>: one step from the Sun, body-locked to Earth.',
+        desc: 'Crew Dragon on Pad 39A at KSC. SPAN is in the geodetic surface frame: lat/long/altitude. Address is <b>SOL.TER</b>, one level below the Sun, locked to Earth\'s body frame.',
         body: 'TER', mode: 'surface', lat: 28.6, lon: -80.6, alt: 0,
       },
       {
         label: 'T+8:45 · MECO, Coast Arc',
-        desc: 'Falcon 9 main engine cutoff at ~200 km altitude. Dragon coasts to parking orbit. SPAN address <b>SOL.TER</b> is unchanged — only the leaf coordinate shifts from surface geodetic to low orbit.',
+        desc: 'Falcon 9 MECO at ~200 km. Dragon coasts up to parking orbit. The SPAN address stays <b>SOL.TER</b> throughout; only the leaf coordinate changes as it leaves the surface regime.',
         body: 'TER', mode: 'surface', lat: 28.6, lon: -65.0, alt: 200,
       },
       {
         label: 'T+6 h · Phasing Orbit',
-        desc: 'Dragon in a 200×400 km phasing orbit, chasing the ISS from below. SPAN switches to the orbital spherical frame: <b>SOL.TER ⟨ r Az El ⟩</b>. Range from Earth centre ≈ 6,771 km.',
+        desc: 'Dragon in a 200x400 km phasing orbit below the ISS. SPAN is now in the body-centred spherical frame: <b>SOL.TER ⟨ r Az El ⟩</b>. Range from Earth centre ~6,771 km.',
         body: 'TER', mode: 'orbit', r: 6771, az: 100, el: 0,
       },
       {
         label: 'T+27 h · R-bar Approach',
-        desc: 'Dragon within 1 km of the ISS on the radial approach bar. The SPAN address is still <b>SOL.TER</b>. Azimuth and elevation tick almost imperceptibly — the coordinate system, not the physics, defines the precision needed here.',
+        desc: 'Dragon within 1 km of ISS on the R-bar approach. Address is still <b>SOL.TER</b>. Az and El are barely ticking; the frame stays constant, only the numbers change.',
         body: 'TER', mode: 'orbit', r: 6786, az: 101.5, el: 51.6,
       },
     ],
@@ -372,17 +372,17 @@ const MISSIONS = {
     phases: [
       {
         label: 'Trans-Lunar Injection',
-        desc: 'Starship HLS departs Earth orbit bound for the Moon. Still inside TER\'s SOI (924,000 km radius). SPAN: <b>SOL.TER</b> — the Moon hasn\'t "claimed" the vehicle yet.',
+        desc: 'Starship HLS leaves Earth orbit on the way to the Moon. Still inside TER\'s SOI at 924,000 km. SPAN address is <b>SOL.TER</b>; Luna\'s SOI hasn\'t captured it yet.',
         body: 'TER', mode: 'orbit', r: 700000, az: 280, el: 2,
       },
       {
         label: 'SOI Handoff → NRHO',
-        desc: 'Starship crosses Luna\'s sphere of influence (66,100 km radius). SPAN automatically hands off: <b>SOL.TER.LUN</b>. The address grows by one node. NRHO periapsis ≈ 3,000 km over the south pole — extreme ellipse, very fuel-efficient.',
+        desc: 'Starship crosses Luna\'s sphere of influence (66,100 km). SPAN hands off automatically: <b>SOL.TER.LUN</b>. The address gains one node. NRHO periapsis is ~3,000 km over the south pole, a very elongated orbit that\'s cheap on delta-v.',
         body: 'LUN', mode: 'orbit', r: 65000, az: 350, el: -75,
       },
       {
         label: 'Low Lunar Orbit (LLO)',
-        desc: 'Starship circularises to a 100 km Low Lunar Orbit. SPAN: <b>SOL.TER.LUN ⟨ r Az El ⟩</b>, range ≈ 1,837 km from Luna\'s centre. PDI (Powered Descent Initiation) engines ignite from here.',
+        desc: 'Starship circularises into a 100 km Low Lunar Orbit. SPAN: <b>SOL.TER.LUN ⟨ r Az El ⟩</b>, ~1,837 km from Luna\'s centre. PDI burn starts from this altitude.',
         body: 'LUN', mode: 'orbit', r: 1837, az: 45, el: 3,
       },
       {
@@ -466,15 +466,15 @@ function updateEphemerisBadge(loaded, total) {
   } else if (ephemerisStatus === 'loaded') {
     badge.textContent = 'HORIZONS ●';
     badge.className = 'ephem-badge ok';
-    badge.title = `Real ephemeris loaded for ${loaded} bodies — NASA JPL Horizons API`;
+    badge.title = `Real ephemeris loaded for ${loaded} bodies (NASA JPL Horizons API)`;
   } else if (ephemerisStatus === 'partial') {
     badge.textContent = `HORIZONS ${loaded}/${total}`;
     badge.className = 'ephem-badge partial';
-    badge.title = 'Partial ephemeris loaded — some bodies fell back to illustrative positions';
+    badge.title = 'Partial ephemeris: some bodies fell back to illustrative positions';
   } else {
     badge.textContent = 'HORIZONS ○';
     badge.className = 'ephem-badge failed';
-    badge.title = 'Could not reach NASA Horizons API — using illustrative positions';
+    badge.title = 'Could not reach NASA Horizons API, using illustrative positions';
   }
 }
 
@@ -513,7 +513,7 @@ function boot(){
   const order = ['SOL','MER','VEN','TER','LUN','MAR','PHO','DEI','JUP','IO_','EUR','GAN','CAL','SAT','TIT','URA','NEP','TRI'];
   sel.innerHTML = order.map(c => {
     const b = BODIES[c]; const ind = b.kind==='moon' ? '  ↳ ' : (b.kind==='planet'?' ':'');
-    return `<option value="${c}">${ind}${b.code} — ${b.name}</option>`;
+    return `<option value="${c}">${ind}${b.code}  ${b.name}</option>`;
   }).join('');
   sel.value = state.body;
   sel.addEventListener('change', () => transfer(sel.value));
