@@ -10,6 +10,7 @@ const state = { body:'TER', local:{ x:0, y:0, z:0 } };
 
 let playing = false, timeScale = 1, simT = 0, lastTS = performance.now();
 let launchAnim = { active:false }, launchPhase = null;
+let showElements = false;   // toggle Keplerian elements panel in readout
 
 /* ---------- spherical <-> cartesian ---------- */
 function sph2cart(r, azDeg, elDeg){
@@ -77,15 +78,62 @@ function updateHUD(){
     const tag = useSurf ? 'Geodetic · surface' : SCHEME[b.kind].tag;
     const row = document.createElement('div');
     row.className = 'frame-row ' + frameClass(b.kind) + (active ? ' active' : '');
+
+    // Position coordinates HTML
+    const coordsHtml = `<div class="coords">${res.fields.map(f=>`
+      <div class="coord"><span class="lbl">${f.lbl}</span><span class="val">${f.val}${f.u?`<span class="u">${f.u}</span>`:''}</span></div>
+    `).join('')}</div>`;
+
+    // Orbital elements HTML (shown when showElements is on)
+    let elemsHtml = '';
+    if (showElements) {
+      const elems = fmtBodyElements(c);
+      if (elems && b.kind !== 'star') {
+        const srcLabel = ephemerisStatus === 'loaded' || ephemerisStatus === 'partial'
+          ? '<span class="elems-src">Horizons · J2000 ICRF</span>'
+          : '<span class="elems-src elems-src-approx">Approximate</span>';
+        elemsHtml = `<div class="elems-block">
+          <div class="elems-header">Keplerian elements${srcLabel}</div>
+          <div class="coords elems-coords">${elems.map(f=>`
+            <div class="coord" title="${f.title||''}">
+              <span class="lbl">${f.lbl}</span>
+              <span class="val elems-val">${f.val}${f.u?`<span class="u">${f.u}</span>`:''}</span>
+            </div>`).join('')}
+          </div></div>`;
+      } else if (b.kind === 'star') {
+        elemsHtml = `<div class="elems-block elems-root-note">Root frame — no bounding orbit. All nested addresses reference the ICRF ecliptic backbone.</div>`;
+      } else if (!elems) {
+        elemsHtml = `<div class="elems-block elems-loading">Fetching Horizons data…</div>`;
+      }
+    }
+
+    // Craft orbital elements — only in active frame and elements mode
+    let craftElemsHtml = '';
+    if (showElements && active && !useSurf) {
+      const ce = craftApproxElements(state);
+      if (ce) {
+        craftElemsHtml = `<div class="elems-block elems-craft">
+          <div class="elems-header">Craft elements <span class="elems-src elems-src-approx">circular approx</span></div>
+          <div class="coords elems-coords">
+            ${[
+              {lbl:'a', val:ce.a, title:'Semi-major axis'},
+              {lbl:'e', val:ce.e, title:'Eccentricity'},
+              {lbl:'i', val:ce.i, title:'Inclination'},
+              {lbl:'Ω', val:ce.Omega, title:'RAAN'},
+              {lbl:'ω', val:ce.omega, title:'Arg of periapsis'},
+              {lbl:'ν', val:ce.nu, title:'True anomaly'},
+            ].map(f=>`<div class="coord" title="${f.title}"><span class="lbl">${f.lbl}</span><span class="val elems-val">${f.val}</span></div>`).join('')}
+          </div></div>`;
+      }
+    }
+
     row.innerHTML = `
       <div class="bar"></div>
       <div class="fr-head">
         <div class="fr-id"><span class="code">${b.code}</span><span class="nm">${b.name}</span></div>
         <div class="fr-tag">${tag}</div>
       </div>
-      <div class="coords">${res.fields.map(f=>`
-        <div class="coord"><span class="lbl">${f.lbl}</span><span class="val">${f.val}${f.u?`<span class="u">${f.u}</span>`:''}</span></div>
-      `).join('')}</div>`;
+      ${coordsHtml}${elemsHtml}${craftElemsHtml}`;
     wrap.appendChild(row);
   });
 
@@ -121,6 +169,9 @@ function updateHUD(){
         : `Craft occupies <b>${pct}%</b> of ${BODIES[state.body].code}'s sphere of influence.`;
     }
   }
+  // ICRF continuity footnote — always visible
+  const icrf = document.getElementById('icrf-note');
+  if (icrf) icrf.style.display = '';
   fill.style.background = HUE_VAR[BODIES[state.body].kind];
 
   // surface/orbit toggle button
@@ -141,7 +192,7 @@ function updateHUD(){
 /* ===========================================================
    Pilot console — controls match the active frame's scheme
    =========================================================== */
-let controls = [];   // {key, get, set}
+let controls = [];
 function buildControls(){
   const b = BODIES[state.body];
   const surf = isSurfaceRegime(state);
@@ -172,7 +223,7 @@ function buildControls(){
 }
 
 function controlSpecsSurface(b){
-  const altMax = surfaceBand(b.code) * 1.4;   // allow climbing past the band → orbital
+  const altMax = surfaceBand(b.code) * 1.4;
   return [
     { key:'lat', name:'Latitude',  min:-90,  max:90,  step:0.5, fmt:v=>fmtLat(v) },
     { key:'lon', name:'Longitude', min:-180, max:180, step:0.5, fmt:v=>fmtLon(v) },
@@ -197,7 +248,6 @@ function controlSpecs(b, sch){
       { key:'el', name:'Elevation', min:-90, max:90, step:0.5, fmt:v=>(v>=0?'+':'−')+Math.abs(v).toFixed(1)+'°' },
     ].map(s => ({ ...s, apply:applySpherical }));
   }
-  // cartesian
   const m = b.soiKm*1.6, step = Math.max(1, Math.round(m/600));
   return ['X','Y','Z'].map(ax => ({
     key:ax.toLowerCase(), name:ax+' offset', min:-m, max:m, step,
@@ -213,7 +263,6 @@ function applySpherical(){ state.local = sph2cart(readControl('r'), readControl(
 function applyCartesian(){ state.local = { x:readControl('x'), y:readControl('y'), z:readControl('z') }; }
 function applyGeodetic(){ state.local = geodeticFromLLA(state.body, readControl('lat'), readControl('lon'), readControl('alt')); }
 
-// push current state values into the slider positions
 function syncControls(){
   const b = BODIES[state.body]; const sch = SCHEME[b.kind];
   const surf = isSurfaceRegime(state);
@@ -222,17 +271,16 @@ function syncControls(){
     const g = geodetic(state); set('lat', g.lat); set('lon', g.lon); set('alt', Math.max(0,g.alt));
   } else if (sch.type === 'ecliptic'){
     const h = craftHelioAU(state); const r = vlen(h);
-    set('lon', ((Math.atan2(h.y,h.x)*DEG)+360)%360);
-    set('lat', r>1e-9?Math.asin(h.z/r)*DEG:0); set('r', r);
+    set('lon', ((Math.atan2(h.y,h.x)*180/Math.PI)+360)%360);
+    set('lat', r>1e-9?Math.asin(h.z/r)*180/Math.PI:0); set('r', r);
   } else if (sch.type === 'spherical'){
     const p = state.local, r = vlen(p);
-    set('r', r); set('az', ((Math.atan2(p.y,p.x)*DEG)+360)%360); set('el', r>1e-9?Math.asin(p.z/r)*DEG:0);
+    set('r', r); set('az', ((Math.atan2(p.y,p.x)*180/Math.PI)+360)%360); set('el', r>1e-9?Math.asin(p.z/r)*180/Math.PI:0);
   } else {
     set('x', state.local.x); set('y', state.local.y); set('z', state.local.z);
   }
 }
 
-// after a manual edit: maybe hand off (SOI) or switch surface↔orbital; rebuild if so
 function afterEdit(){
   if (launchAnim.active) return;
   const prevBody = state.body, prevMode = Scene.frameMode;
@@ -243,7 +291,7 @@ function afterEdit(){
 }
 
 /* ===========================================================
-   Launch / ascent animation — gravity-turn lift-off with contrail
+   Launch / ascent animation
    =========================================================== */
 function setConsoleLock(on){
   document.querySelectorAll('#controls input').forEach(i => i.disabled = on);
@@ -258,8 +306,8 @@ function beginLaunch(){
 
   const g = geodetic(state);
   const lat0 = g.lat, lon0 = g.lon;
-  state.local = geodeticFromLLA(state.body, lat0, lon0, 0);    // on the pad
-  Scene.buildSurface(state.body);                              // fresh surface view (clears old trail)
+  state.local = geodeticFromLLA(state.body, lat0, lon0, 0);
+  Scene.buildSurface(state.body);
   Scene.setState(state); buildControls(); updateHUD();
   Scene.startLaunch(); Scene.focusLaunch();
 
@@ -272,10 +320,10 @@ function beginLaunch(){
 function stepLaunchAnim(dt){
   launchAnim.t += dt / launchAnim.dur;
   const t = Math.min(1, launchAnim.t), L = launchAnim;
-  const alt = L.altTarget * (1 - Math.pow(1-t, 2.3));       // ease-out climb
-  const lon = L.lon0 + L.downrange * Math.pow(t, 1.7);      // gravity-turn pitch-over
+  const alt = L.altTarget * (1 - Math.pow(1-t, 2.3));
+  const lon = L.lon0 + L.downrange * Math.pow(t, 1.7);
   state.local = geodeticFromLLA(L.body, L.lat0, lon, alt);
-  const thrust = Math.max(0, 1 - t*1.18);                   // engine cut-off near apoapsis
+  const thrust = Math.max(0, 1 - t*1.18);
   launchPhase = thrust > 0.02 ? 'powered ascent' : 'coast · MECO';
   Scene.setState(state);
   Scene.stepLaunch(thrust);
@@ -288,14 +336,157 @@ function stepLaunchAnim(dt){
 }
 
 /* ===========================================================
+   Mission scenarios — real SpaceX reference trajectories
+   Walk through how SPAN represents each mission end-to-end.
+   =========================================================== */
+const MISSIONS = {
+  dragon_iss: {
+    name: 'Dragon · ISS Rendezvous',
+    craft: 'DRAGON',
+    phases: [
+      {
+        label: 'T−0 · KSC Launch Pad 39A',
+        desc: 'Crew Dragon sits on Pad 39A at Kennedy Space Center. SPAN is in the surface geodetic frame — lat/long/altitude. The full address is <b>SOL.TER</b>: one step from the Sun, body-locked to Earth.',
+        body: 'TER', mode: 'surface', lat: 28.6, lon: -80.6, alt: 0,
+      },
+      {
+        label: 'T+8:45 · MECO, Coast Arc',
+        desc: 'Falcon 9 main engine cutoff at ~200 km altitude. Dragon coasts to parking orbit. SPAN address <b>SOL.TER</b> is unchanged — only the leaf coordinate shifts from surface geodetic to low orbit.',
+        body: 'TER', mode: 'surface', lat: 28.6, lon: -65.0, alt: 200,
+      },
+      {
+        label: 'T+6 h · Phasing Orbit',
+        desc: 'Dragon in a 200×400 km phasing orbit, chasing the ISS from below. SPAN switches to the orbital spherical frame: <b>SOL.TER ⟨ r Az El ⟩</b>. Range from Earth centre ≈ 6,771 km.',
+        body: 'TER', mode: 'orbit', r: 6771, az: 100, el: 0,
+      },
+      {
+        label: 'T+27 h · R-bar Approach',
+        desc: 'Dragon within 1 km of the ISS on the radial approach bar. The SPAN address is still <b>SOL.TER</b>. Azimuth and elevation tick almost imperceptibly — the coordinate system, not the physics, defines the precision needed here.',
+        body: 'TER', mode: 'orbit', r: 6786, az: 101.5, el: 51.6,
+      },
+    ],
+  },
+  starship_lunar: {
+    name: 'Starship HLS · Lunar Landing',
+    craft: 'STARSHIP-HLS',
+    phases: [
+      {
+        label: 'Trans-Lunar Injection',
+        desc: 'Starship HLS departs Earth orbit bound for the Moon. Still inside TER\'s SOI (924,000 km radius). SPAN: <b>SOL.TER</b> — the Moon hasn\'t "claimed" the vehicle yet.',
+        body: 'TER', mode: 'orbit', r: 700000, az: 280, el: 2,
+      },
+      {
+        label: 'SOI Handoff → NRHO',
+        desc: 'Starship crosses Luna\'s sphere of influence (66,100 km radius). SPAN automatically hands off: <b>SOL.TER.LUN</b>. The address grows by one node. NRHO periapsis ≈ 3,000 km over the south pole — extreme ellipse, very fuel-efficient.',
+        body: 'LUN', mode: 'orbit', r: 65000, az: 350, el: -75,
+      },
+      {
+        label: 'Low Lunar Orbit (LLO)',
+        desc: 'Starship circularises to a 100 km Low Lunar Orbit. SPAN: <b>SOL.TER.LUN ⟨ r Az El ⟩</b>, range ≈ 1,837 km from Luna\'s centre. PDI (Powered Descent Initiation) engines ignite from here.',
+        body: 'LUN', mode: 'orbit', r: 1837, az: 45, el: 3,
+      },
+      {
+        label: 'Touchdown · South Pole',
+        desc: 'Starship lands at the Artemis target site near the lunar south pole. SPAN switches to the geodetic surface frame: <b>SOL.TER.LUN ⌖</b>. Three bodies deep, surface-locked. The address is unambiguous anywhere in the solar system.',
+        body: 'LUN', mode: 'surface', lat: -89.2, lon: 0, alt: 0,
+      },
+    ],
+  },
+};
+
+let activeMission = null;
+let missionPhaseIdx = 0;
+
+function applyMissionPhase(mission, idx) {
+  missionPhaseIdx = idx;
+  const phase = mission.phases[idx];
+  const cn = document.querySelector('#readout h2 .craftname');
+  if (cn) cn.textContent = mission.craft;
+
+  if (phase.mode === 'surface') {
+    state.body = phase.body;
+    state.local = geodeticFromLLA(phase.body, phase.lat, phase.lon, phase.alt);
+  } else {
+    state.body = phase.body;
+    state.local = sph2cart(phase.r, phase.az, phase.el);
+  }
+  resolveSOI(state);
+  enterActiveFrame();
+  renderMissionPanel();
+}
+
+function renderMissionPanel() {
+  const panel = document.getElementById('mission-panel');
+  if (!panel || !activeMission) return;
+  const m = activeMission, phases = m.phases, phase = phases[missionPhaseIdx];
+  panel.innerHTML = `
+    <div class="mp-header">
+      <span class="mp-name">${m.name}</span>
+      <span class="mp-step">${missionPhaseIdx+1}/${phases.length}</span>
+    </div>
+    <div class="mp-phase-label">${phase.label}</div>
+    <div class="mp-desc">${phase.desc}</div>
+    <div class="mp-nav">
+      <button class="btn mp-btn" ${missionPhaseIdx===0?'disabled':''} onclick="missionStep(-1)"><span class="lbl">◀ Prev</span></button>
+      <div class="mp-dots">${phases.map((_,i)=>`<span class="mp-dot${i===missionPhaseIdx?' active':''}"></span>`).join('')}</div>
+      <button class="btn mp-btn" ${missionPhaseIdx>=phases.length-1?'disabled':''} onclick="missionStep(1)"><span class="lbl">Next ▶</span></button>
+    </div>`;
+}
+
+function missionStep(delta) {
+  if (!activeMission) return;
+  const next = missionPhaseIdx + delta;
+  if (next < 0 || next >= activeMission.phases.length) return;
+  applyMissionPhase(activeMission, next);
+}
+
+function setMission(key) {
+  activeMission = key ? MISSIONS[key] : null;
+  const panel = document.getElementById('mission-panel');
+  if (!panel) return;
+  if (activeMission) {
+    panel.style.display = 'block';
+    applyMissionPhase(activeMission, 0);
+  } else {
+    panel.style.display = 'none';
+    const cn = document.querySelector('#readout h2 .craftname');
+    if (cn) cn.textContent = 'SC-VOYAGER';
+  }
+}
+
+/* ===========================================================
+   Ephemeris status badge
+   =========================================================== */
+function updateEphemerisBadge(loaded, total) {
+  const badge = document.getElementById('ephem-badge');
+  if (!badge) return;
+  if (ephemerisStatus === 'loading') {
+    badge.textContent = `HORIZONS ${loaded}/${total}`;
+    badge.className = 'ephem-badge loading';
+  } else if (ephemerisStatus === 'loaded') {
+    badge.textContent = 'HORIZONS ●';
+    badge.className = 'ephem-badge ok';
+    badge.title = `Real ephemeris loaded for ${loaded} bodies — NASA JPL Horizons API`;
+  } else if (ephemerisStatus === 'partial') {
+    badge.textContent = `HORIZONS ${loaded}/${total}`;
+    badge.className = 'ephem-badge partial';
+    badge.title = 'Partial ephemeris loaded — some bodies fell back to illustrative positions';
+  } else {
+    badge.textContent = 'HORIZONS ○';
+    badge.className = 'ephem-badge failed';
+    badge.title = 'Could not reach NASA Horizons API — using illustrative positions';
+  }
+}
+
+/* ===========================================================
    Time / playback
    =========================================================== */
 function updateOrbits(){
   Object.values(BODIES).forEach(b => {
     if (b.kind === 'star'){ b.theta = 0; return; }
-    const base = b.theta0 * Math.PI/180;
+    const base = b.theta0_real != null ? b.theta0_real : b.theta0 * Math.PI/180;
     const rate = b.kind === 'planet' ? (1/b.periodYr) : (1/(b.periodDay/365.25));
-    b.theta = base + simT * rate * 0.35;   // 0.35 = pleasant pace
+    b.theta = base + simT * rate * 0.35;
   });
 }
 function loop(now){
@@ -309,15 +500,13 @@ function loop(now){
    Boot
    =========================================================== */
 function boot(){
-  // init bodies' theta
   Object.values(BODIES).forEach(b => { b.theta = (b.theta0||0)*Math.PI/180; });
 
   Scene.init($('#gl'), $('#labels'));
   Scene.onSelect(transfer);
   Scene.start();
 
-  transfer('TER');         // open on the headline example
-  // then nudge active down to show a moon? keep at Terra for clarity.
+  transfer('TER');
 
   // transfer dropdown
   const sel = $('#transfer');
@@ -329,6 +518,23 @@ function boot(){
   sel.value = state.body;
   sel.addEventListener('change', () => transfer(sel.value));
   window._syncSelect = () => { sel.value = state.body; };
+
+  // mission dropdown
+  const msel = document.getElementById('mission-select');
+  if (msel) {
+    msel.addEventListener('change', () => setMission(msel.value || null));
+  }
+
+  // orbital elements toggle
+  const elemsBtn = document.getElementById('elems-btn');
+  if (elemsBtn) {
+    elemsBtn.addEventListener('click', () => {
+      showElements = !showElements;
+      elemsBtn.classList.toggle('active', showElements);
+      elemsBtn.querySelector('.lbl').textContent = showElements ? 'Position' : 'Elements';
+      updateHUD();
+    });
+  }
 
   // playback
   const playBtn = $('#play');
@@ -346,29 +552,38 @@ function boot(){
   $('#surf').addEventListener('click', () => {
     const b = BODIES[state.body]; if (b.kind === 'star') return;
     if (isSurfaceRegime(state)){
-      state.local = sph2cart(0.22*b.soiKm, 40, 14);          // ascend to parking orbit
+      state.local = sph2cart(0.22*b.soiKm, 40, 14);
     } else {
-      const g = geodetic(state);                              // descend beneath current point
+      const g = geodetic(state);
       state.local = geodeticFromLLA(state.body, g.lat, g.lon, surfaceBand(state.body)*0.12);
     }
     resolveSOI(state); enterActiveFrame();
   });
 
-  // animated launch / ascent
   $('#launch').addEventListener('click', beginLaunch);
 
-  // about
   $('#about-btn').addEventListener('click', ()=> $('#overlay').classList.add('open'));
   $('#overlay').addEventListener('click', e => { if (e.target.id==='overlay') $('#overlay').classList.remove('open'); });
   $('#about-close').addEventListener('click', ()=> $('#overlay').classList.remove('open'));
 
-  // keep dropdown synced when active frame changes via clicks/handoff
   window._syncSelect();
+
+  // Fetch real ephemeris from NASA Horizons in the background
+  updateEphemerisBadge(0, Object.keys(HORIZONS_CONFIG).length);
+  fetchAllEphemeris((loaded, total) => {
+    updateEphemerisBadge(loaded, total);
+  }).then(loaded => {
+    updateEphemerisBadge(loaded, Object.keys(HORIZONS_CONFIG).length);
+    if (loaded > 0) {
+      // Refresh scene with real planet positions
+      Scene.setState(state);
+      updateHUD();
+    }
+  });
 
   requestAnimationFrame(loop);
 }
 
-// wrap enterActiveFrame to keep dropdown in sync
 const _enter = enterActiveFrame;
 enterActiveFrame = function(){ _enter(); if (window._syncSelect) window._syncSelect(); };
 

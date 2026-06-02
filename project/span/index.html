@@ -31,12 +31,20 @@
 
     <!-- right: nav readout -->
     <div id="readout" class="panel">
-      <h2><span>Position Resolution</span><span class="craftname">SC-VOYAGER</span></h2>
+      <h2>
+        <span>Position Resolution</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span id="ephem-badge" class="ephem-badge loading" title="NASA JPL Horizons ephemeris status">HORIZONS …</span>
+          <button class="btn" id="elems-btn" style="height:26px;padding:0 10px;font-size:10px;"><span class="lbl">Elements</span></button>
+          <span class="craftname">SC-VOYAGER</span>
+        </div>
+      </h2>
       <div id="frame-rows"></div>
       <div id="soi-status" class="panel">
         <div class="soi-top"><span class="t" id="soi-title">Sphere of Influence</span><span class="v" id="soi-val"></span></div>
         <div class="meter"><div class="fill" id="soi-fill"></div></div>
         <div class="note" id="soi-note"></div>
+        <div id="icrf-note"><b>ICRF backbone:</b> SPAN is a labeling system over a continuous J2000 ICRF coordinate backbone. Frame transitions are relabeling events — not coordinate discontinuities. The underlying position vector is always expressible as a single ICRF Cartesian triple.</div>
       </div>
     </div>
 
@@ -53,6 +61,16 @@
         <button class="btn" id="play"><span class="ico">▶</span><span class="lbl">Orbits</span></button>
         <button class="btn" id="speed"><span class="lbl">1×</span></button>
       </div>
+      <div class="row" style="margin-top:8px;">
+        <div class="select-wrap" style="flex:1;">
+          <select id="mission-select">
+            <option value="">── Mission scenario ──</option>
+            <option value="dragon_iss">Dragon · ISS Rendezvous</option>
+            <option value="starship_lunar">Starship HLS · Lunar Landing</option>
+          </select>
+        </div>
+      </div>
+      <div id="mission-panel"></div>
     </div>
 
     <div id="hint">
@@ -96,7 +114,25 @@
 
       <p><b style="color:var(--planet)">Leaving a surface?</b> Within one body-radius of a planet or moon's surface, the active frame switches to a <b>geodetic</b> regime — <span style="font-family:var(--font-mono)">latitude · longitude · altitude</span> — and the view zooms to the surface with a lat/long graticule and a live ground-track point. Climb back out and it reverts to the orbital (range/azimuth/elevation) regime automatically.</p>
 
-      <p class="footnote">Distances, radii and sphere-of-influence radii are approximate and illustrative — sized for clarity, not navigation. SOI ≈ a·(m/M)<sup>2/5</sup>. Solar-system view uses a compressed (√) radial scale so all eight planets are visible at once.</p>
+      <div class="icrf-card">
+        <h3>ICRF Backbone &amp; Frame Continuity</h3>
+        <p>SPAN is a <b>labeling system</b> layered over a continuous J2000 ICRF (International Celestial Reference Frame) coordinate backbone — not a patchwork of disconnected frames. When a spacecraft crosses a sphere-of-influence boundary and the address updates from <span style="font-family:var(--font-mono);color:var(--planet)">SOL.TER</span> to <span style="font-family:var(--font-mono);color:var(--moon)">SOL.TER.LUN</span>, the underlying position vector expressed in ICRF Cartesian coordinates <em>does not jump</em>. The transition is a relabeling event — a convenience abstraction — not a physical discontinuity. Every SPAN address maps bijectively to a unique ICRF triple at a given epoch, making the system interoperable with any standards-compliant navigation software.</p>
+      </div>
+
+      <p><b style="color:var(--planet)">SpaceX Mission Story — Starship HLS Lunar Landing:</b> When NASA's Artemis Starship departs Earth orbit, its SPAN address reads <span style="font-family:var(--font-mono)">SOL.TER ⟨ r=700,000 km ⟩</span>. The moment it enters Luna's 66,100 km SOI, the address grows a node: <span style="font-family:var(--font-mono)">SOL.TER.LUN</span>. From NRHO (70,000×3,000 km ellipse) to LLO (100 km circle) to touchdown, the address stays <span style="font-family:var(--font-mono)">SOL.TER.LUN</span> — only the leaf coordinates change. On the surface: <span style="font-family:var(--font-mono)">SOL.TER.LUN ⌖ 89.2°S 0.0°E ↑0.0km</span>. One address, unambiguous anywhere in the solar system. SpaceX Starlink, Dragon, and Starship all require exactly this kind of multi-frame position bookkeeping — SPAN makes the hierarchy explicit.</p>
+
+      <div class="mission-demo">
+        <span class="phase-lbl">Launch pad    </span> <span class="addr">SOL.TER</span> ⌖ 28.6°N 280.5°E ↑0.0km<br>
+        <span class="phase-lbl">Parking orbit </span> <span class="addr">SOL.TER</span> ⟨ r=6,771km Az=100° El=0° ⟩<br>
+        <span class="phase-lbl">TLI outbound  </span> <span class="addr">SOL.TER</span> ⟨ r=700,000km Az=280° El=2° ⟩<br>
+        <span class="phase-lbl">NRHO (Moon)   </span> <span class="addr">SOL.TER.LUN</span> ⟨ r=65,000km Az=350° El=−75° ⟩<br>
+        <span class="phase-lbl">LLO descent   </span> <span class="addr">SOL.TER.LUN</span> ⟨ r=1,837km Az=45° El=3° ⟩<br>
+        <span class="phase-lbl">Touchdown     </span> <span class="addr">SOL.TER.LUN</span> ⌖ 89.2°S 0.0°E ↑0.0km
+      </div>
+
+      <p><b style="color:var(--sol)">Real Ephemeris — NASA JPL Horizons:</b> Planet and Moon positions in this tool are pulled from <b>NASA JPL's Horizons API</b> (free, public, CORS-enabled). The orbital angles shown are real J2000 ICRF heliocentric elements — not cartoon approximations. You can verify any position against <code style="font-size:10.5px;background:rgba(0,0,0,0.3);padding:1px 5px;border-radius:4px;">ssd.jpl.nasa.gov/horizons</code> directly. Toggle <b>Elements</b> in the readout panel to see the full Keplerian set (a, e, i, Ω, ω, ν) for each body in the address chain.</p>
+
+      <p class="footnote">Sphere-of-influence radii: SOI ≈ a·(m/M)<sup>2/5</sup>. Solar-system view uses a compressed (√) radial scale so all eight planets are visible at once. Craft orbital elements shown as "circular approx" are computed from position alone (e ≈ 0 assumed); full elements require velocity tracking.</p>
     </div>
   </div>
 </div>
@@ -109,6 +145,7 @@
 <!-- app -->
 <script src="data.js"></script>
 <script src="coords.js"></script>
+<script src="ephemeris.js"></script>
 <script src="scene.js"></script>
 <script src="app.js"></script>
 </body>

@@ -365,6 +365,117 @@ select#transfer:hover { border-color: var(--line-2); }
 #about .close:hover { color: var(--ink); border-color: var(--line-2); }
 #about .footnote { font-size: 10.5px; color: var(--ink-faint); margin-top: 18px; line-height: 1.5; }
 
+/* ---------- Ephemeris status badge ---------- */
+.ephem-badge {
+  font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.16em;
+  text-transform: uppercase; padding: 3px 7px; border-radius: var(--r-xs);
+  border: 1px solid var(--line); cursor: default; white-space: nowrap;
+  transition: color .3s, border-color .3s;
+}
+.ephem-badge.loading { color: var(--ink-faint); border-color: var(--line); }
+.ephem-badge.ok      { color: oklch(0.78 0.18 145); border-color: oklch(0.78 0.18 145 / 0.4); }
+.ephem-badge.partial { color: var(--sol); border-color: var(--sol-soft); }
+.ephem-badge.failed  { color: var(--ink-faint); border-color: var(--line); }
+
+/* ---------- Orbital elements display ---------- */
+.elems-block {
+  margin-top: 8px; padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+.elems-header {
+  font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink-faint); margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
+}
+.elems-src {
+  font-size: 8px; letter-spacing: 0.1em; padding: 1px 5px; border-radius: 4px;
+  border: 1px solid var(--line); color: oklch(0.78 0.18 145); border-color: oklch(0.78 0.18 145/0.35);
+}
+.elems-src-approx {
+  color: var(--sol); border-color: var(--sol-soft);
+}
+.elems-coords { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+.elems-coords .coord { flex: none; }
+.elems-val { font-size: 11px !important; }
+.elems-root-note {
+  font-size: 9.5px; color: var(--ink-faint); line-height: 1.5;
+}
+.elems-loading { font-size: 9.5px; color: var(--ink-faint); font-style: italic; }
+.elems-craft .elems-header { color: var(--planet); }
+
+/* Elements toggle button state */
+#elems-btn.active {
+  color: var(--planet); border-color: var(--planet);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 0 0 1px var(--planet-soft), 0 4px 14px -4px var(--planet-soft);
+}
+
+/* ---------- Readout header with elements toggle ---------- */
+#readout h2 { align-items: center; }
+
+/* ---------- Mission panel ---------- */
+#mission-panel {
+  display: none; margin-top: 13px; padding: 12px 14px;
+  background: rgba(0,0,0,0.2); border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+}
+.mp-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;
+}
+.mp-name {
+  font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase;
+  font-weight: 600; color: var(--planet);
+}
+.mp-step {
+  font-family: var(--font-mono); font-size: 9px; color: var(--ink-faint);
+}
+.mp-phase-label {
+  font-size: 11px; font-weight: 600; color: var(--ink); margin-bottom: 6px; line-height: 1.35;
+}
+.mp-desc {
+  font-size: 10.5px; color: var(--ink-dim); line-height: 1.55; margin-bottom: 10px;
+}
+.mp-desc b { color: var(--planet); font-weight: 600; font-family: var(--font-mono); font-size: 10px; }
+.mp-nav {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.mp-btn { flex: 0 0 auto; }
+.mp-dots { display: flex; gap: 5px; }
+.mp-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--line-2); transition: background .2s;
+}
+.mp-dot.active { background: var(--planet); }
+
+/* ---------- ICRF backbone note ---------- */
+#icrf-note {
+  margin-top: 8px; padding: 7px 10px; border-radius: var(--r-xs);
+  background: rgba(0,0,0,0.15); border-left: 2px solid var(--line-2);
+  font-size: 9.5px; color: var(--ink-faint); line-height: 1.5;
+}
+#icrf-note b { color: var(--ink-dim); font-weight: 500; }
+#icrf-note .icrf-link { color: var(--planet); font-family: var(--font-mono); font-size: 9px; }
+
+/* ---------- About: ICRF section ---------- */
+#about .icrf-card {
+  background: rgba(0,0,0,0.2); border: 1px solid var(--line);
+  border-left: 3px solid var(--planet); border-radius: var(--r-sm);
+  padding: 14px 16px; margin: 18px 0;
+}
+#about .icrf-card h3 {
+  margin: 0 0 8px; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--planet); font-weight: 600;
+}
+#about .icrf-card p { margin: 0; font-size: 11.5px; color: var(--ink-dim); line-height: 1.6; }
+
+/* About: mission demo block */
+#about .mission-demo {
+  font-family: var(--font-mono); font-size: 11px;
+  background: rgba(0,0,0,0.3); border: 1px solid var(--line);
+  border-radius: var(--r-sm); padding: 12px 14px; margin: 14px 0;
+  line-height: 2.0; color: var(--ink-dim);
+}
+#about .mission-demo .addr { color: var(--planet); font-weight: 600; }
+#about .mission-demo .phase-lbl { color: var(--ink-faint); font-size: 9.5px; }
+
 @media (max-width: 900px) {
   #readout { display: none; }
   #about .grid { grid-template-columns: 1fr; }

@@ -190,3 +190,48 @@ function resolveSurface(state){
     compact: geodeticCompact(state),
   };
 }
+
+/* ============================================================
+   Keplerian / orbital-elements display
+   ============================================================ */
+
+// Format real Horizons elements for a body (shown in elements panel)
+function fmtBodyElements(code) {
+  const e = REAL_ELEMENTS[code];
+  if (!e) return null;
+  // Moon's semi-major axis is stored in AU from Horizons geocentric fetch
+  const aStr = code === 'LUN'
+    ? Math.round(e.a * AU_KM).toLocaleString('en-US') + ' km'
+    : e.a.toFixed(6) + ' AU';
+  return [
+    { lbl:'a',  val: aStr,                   title:'Semi-major axis' },
+    { lbl:'e',  val: e.e.toFixed(5),          title:'Eccentricity' },
+    { lbl:'i',  val: e.i.toFixed(3)+'°',      title:'Inclination' },
+    { lbl:'Ω',  val: e.Omega.toFixed(2)+'°',  title:'Long. ascending node' },
+    { lbl:'ω',  val: e.omega.toFixed(2)+'°',  title:'Argument of periapsis' },
+    { lbl:'ν',  val: e.nu.toFixed(2)+'°',     title:'True anomaly (J2000 ICRF)' },
+  ];
+}
+
+// Approximate circular-orbit elements for the craft in its current frame.
+// Without tracking velocity, e=0 is assumed; Ω/ω are estimated from position.
+function craftApproxElements(state) {
+  const b = BODIES[state.body];
+  if (b.kind === 'star') {
+    const h = craftHelioAU(state), r = vlen(h);
+    if (r < 1e-9) return null;
+    const nu = ((Math.atan2(h.y, h.x) * DEG) + 360) % 360;
+    return { a: r.toFixed(5)+' AU', e:'~0', i:'0.0°', Omega:'—', omega:'—', nu: nu.toFixed(1)+'°', approx:true };
+  }
+  const p = state.local, r = vlen(p);
+  if (r < 1e-3) return null;
+  const nu    = ((Math.atan2(p.y, p.x) * DEG) + 360) % 360;
+  const incl  = Math.abs(Math.asin(Math.max(-1, Math.min(1, p.z / r))) * DEG);
+  const Omega = ((Math.atan2(p.x, -p.y) * DEG) + 360) % 360;
+  return {
+    a: Math.round(r).toLocaleString('en-US') + ' km',
+    e: '~0', i: incl.toFixed(1)+'°',
+    Omega: Omega.toFixed(1)+'°', omega: '—', nu: nu.toFixed(1)+'°',
+    approx: true,
+  };
+}
