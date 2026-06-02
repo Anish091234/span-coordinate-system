@@ -550,7 +550,7 @@ const Scene = (() => {
 
     scene.add(ambient = new THREE.AmbientLight(0x5a6b8a, 0.34));
     keyLight = new THREE.PointLight(0xffffff, 2.4, 0, 1.2); keyLight.position.set(0,0,0); scene.add(keyLight);
-    sunLight = new THREE.DirectionalLight(0xfff2dd, 0); sunLight.position.set(1,0.5,1); scene.add(sunLight);
+    sunLight = new THREE.DirectionalLight(0xfff2dd, 0); sunLight.position.set(1,0.5,1); scene.add(sunLight); scene.add(sunLight.target);
 
     starfield = makeStars(); scene.add(starfield);
 
